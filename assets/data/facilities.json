@@ -1,0 +1,27 @@
+[
+  {
+    "id": "kosen-building",
+    "name": "KOSEN-KMITL Main Building",
+    "lat": 13.7317,
+    "lng": 100.7786,
+    "hours": "Mon–Fri 08:00–17:00",
+    "contact": "+66-xxx-xxx",
+    "description": "Administration, classrooms"
+  },
+  {
+    "id": "library",
+    "name": "Library",
+    "lat": 13.7298,
+    "lng": 100.7759,
+    "hours": "Mon–Sat 08:00–20:00",
+    "contact": "+66-xxx-yyy",
+    "description": "Study spaces, computer labs"
+  },
+  {
+    "id": "kmitl_dorm",
+    "name": "KMITL Student Dormitory",
+    "lat": 13.7292445,
+    "lng": 100.7739666,
+    "description": "On-campus housing at KMITL"
+  }
+]

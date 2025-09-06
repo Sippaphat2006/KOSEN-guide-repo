@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "597923914158",
+    "project_id": "kosen-guide-72d81",
+    "storage_bucket": "kosen-guide-72d81.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:597923914158:android:4bda02fd40d307b189a83f",
+        "android_client_info": {
+          "package_name": "com.example.kosen_guide"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxa1x8uww9umkYVuWvY4cytOZUrBmRIf8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
