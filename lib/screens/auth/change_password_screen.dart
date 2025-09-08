@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import '../../services/auth_service.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
+
   @override
   State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
 }
@@ -10,74 +12,45 @@ class ChangePasswordScreen extends StatefulWidget {
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _current = TextEditingController();
-  final _new = TextEditingController();
+  final _newPwd = TextEditingController();
   final _confirm = TextEditingController();
-  bool _ob1 = true, _ob2 = true, _ob3 = true, _busy = false;
+  bool _busy = false;
+  bool _ob1 = true, _ob2 = true, _ob3 = true;
 
   @override
   void dispose() {
     _current.dispose();
-    _new.dispose();
+    _newPwd.dispose();
     _confirm.dispose();
     super.dispose();
   }
 
-  InputDecoration _deco(BuildContext ctx, String label) {
-    return InputDecoration(
-      labelText: label,
-      filled: true,
-      fillColor: Colors.grey.shade200,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide:
-            BorderSide(color: Theme.of(ctx).colorScheme.primary, width: 2),
-      ),
-    );
-  }
+  InputDecoration _deco(BuildContext ctx, String label) => InputDecoration(
+        labelText: label,
+        filled: true,
+        fillColor: Colors.grey.shade200,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide:
+              BorderSide(color: Theme.of(ctx).colorScheme.primary, width: 2),
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).colorScheme.primary;
-
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        titleSpacing: 0,
-        title: const Text('Change password'),
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => Navigator.pop(context),
-        ),
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1, thickness: 1),
-        ),
-      ),
+      appBar: AppBar(title: const Text('Change password')),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 520),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
               child: Form(
                 key: _formKey,
                 child: ListView(
-                  shrinkWrap: true,
                   children: [
-                    const SizedBox(height: 8),
-                    Center(
-                      child: Text(
-                        'REGISTER',
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                              letterSpacing: 2,
-                              color: Colors.grey.shade600,
-                            ),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-
-                    // Current password
                     TextFormField(
                       controller: _current,
                       obscureText: _ob1,
@@ -89,14 +62,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         ),
                       ),
                       validator: (v) => (v == null || v.isEmpty)
-                          ? 'Enter current password'
+                          ? 'Please enter current password'
                           : null,
                     ),
-                    const SizedBox(height: 12),
-
-                    // New password
+                    const SizedBox(height: 14),
                     TextFormField(
-                      controller: _new,
+                      controller: _newPwd,
                       obscureText: _ob2,
                       decoration: _deco(context, 'New password').copyWith(
                         suffixIcon: IconButton(
@@ -109,9 +80,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                           ? 'Min 6 characters'
                           : null,
                     ),
-                    const SizedBox(height: 12),
-
-                    // Confirm new password
+                    const SizedBox(height: 14),
                     TextFormField(
                       controller: _confirm,
                       obscureText: _ob3,
@@ -125,31 +94,23 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       ),
                       validator: (v) {
                         if (v == null || v.isEmpty)
-                          return 'Please confirm password';
-                        if (v != _new.text) return 'Passwords do not match';
+                          return 'Please confirm new password';
+                        if (v != _newPwd.text) return 'Passwords do not match';
                         return null;
                       },
                     ),
-
                     const SizedBox(height: 24),
-
                     SizedBox(
                       height: 56,
                       child: FilledButton(
-                        style: FilledButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        onPressed: _busy ? null : _onChangePassword,
+                        onPressed: _busy ? null : _onChange,
                         child: _busy
                             ? const SizedBox(
                                 height: 22,
                                 width: 22,
                                 child:
                                     CircularProgressIndicator(strokeWidth: 2))
-                            : const Text('Change password',
-                                style: TextStyle(fontWeight: FontWeight.w700)),
+                            : const Text('Change password'),
                       ),
                     ),
                   ],
@@ -162,49 +123,24 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     );
   }
 
-  Future<void> _onChangePassword() async {
+  Future<void> _onChange() async {
     if (!_formKey.currentState!.validate()) return;
-
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null || user.email == null) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please sign in first')),
-      );
-      return;
-    }
-
     setState(() => _busy = true);
     try {
-      // 1) re-authenticate with current password
-      final cred = EmailAuthProvider.credential(
-        email: user.email!,
-        password: _current.text.trim(),
-      );
-      await user.reauthenticateWithCredential(cred);
-
-      // 2) update password
-      await user.updatePassword(_new.text.trim());
-      await user.reload();
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password changed successfully')),
-      );
-      Navigator.pop(context); // กลับหน้าก่อนหน้า
-    } on FirebaseAuthException catch (e) {
-      String msg = 'Change failed: ${e.code}';
-      if (e.code == 'wrong-password') msg = 'Current password is incorrect';
-      if (e.code == 'weak-password') msg = 'New password is too weak';
-      if (e.code == 'requires-recent-login') {
-        msg = 'Please sign in again and retry';
-      }
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-    } catch (e) {
+      await context.read<AuthService>().changePassword(
+            _newPwd.text.trim(),
+            currentPassword: _current.text.trim(),
+            contextIfPrompt:
+                context, // fallback prompt if the current password is wrong
+          );
       if (!mounted) return;
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Change failed: $e')));
+          .showSnackBar(const SnackBar(content: Text('Password updated')));
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      final msg = context.read<AuthService>().friendlyError(e);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
