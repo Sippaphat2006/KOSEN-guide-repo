@@ -43,8 +43,7 @@ class _NewsScreenState extends State<NewsScreen> {
                     ),
                     const SizedBox(height: 12),
                     FilledButton(
-                      onPressed: () =>
-                          _open('https://www.kosen.kmitl.ac.th/en'),
+                      onPressed: () => _open('http://www.kosen.kmitl.ac.th/en'),
                       child: const Text('Open kosen.kmitl.ac.th'),
                     ),
                   ],

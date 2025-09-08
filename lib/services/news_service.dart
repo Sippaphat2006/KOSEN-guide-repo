@@ -6,9 +6,9 @@ import 'package:intl/intl.dart';
 import '../models/news_item.dart';
 
 class NewsService {
-  static const String englishRoot = 'https://www.kosen.kmitl.ac.th/en';
+  static const String englishRoot = 'http://www.kosen.kmitl.ac.th/en';
   static const String thaiNews =
-      'https://www.kosen.kmitl.ac.th/articles?category=news';
+      'http://www.kosen.kmitl.ac.th/articles?category=news';
 
   Future<List<NewsItem>> fetch() async {
     final List<NewsItem> items = [];
